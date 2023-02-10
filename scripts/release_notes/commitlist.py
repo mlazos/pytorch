@@ -1,10 +1,11 @@
 import argparse
-from common import run, topics, get_features
+from common import run, topics, get_features, frontend_categories
 from collections import defaultdict
 import os
 from pathlib import Path
 import csv
 import pprint
+import common
 from common import get_commit_data_cache, features_to_dict
 import re
 import dataclasses
@@ -86,7 +87,7 @@ class CommitList:
             writer.writerow(commit_fields)
             for commit in commit_list:
                 writer.writerow(dataclasses.astuple(commit))
-
+    @staticmethod
     def keywordInFile(file, keywords):
         for key in keywords:
             if key in file:
@@ -113,7 +114,6 @@ class CommitList:
         category = 'Uncategorized'
         topic = 'Untopiced'
 
-
         # We ask contributors to label their PR's appropriately
         # when they're first landed.
         # Check if the labels are there first.
@@ -121,6 +121,11 @@ class CommitList:
         for label in labels:
             if label.startswith('release notes: '):
                 category = label.split('release notes: ', 1)[1]
+                # Merge all distributed variants into one category
+                if category in common.distributed_categories:
+                    category = 'distributed'
+                if category in frontend_categories:
+                    category = category + '_frontend'
                 already_categorized = True
             if label.startswith('topic: '):
                 topic = label.split('topic: ', 1)[1]
@@ -260,13 +265,13 @@ def update_existing(path, new_version):
 
 def rerun_with_new_filters(path):
     current_commits = CommitList.from_existing(path)
-    for i in range(len(current_commits.commits)):
-        c = current_commits.commits[i]
-        if 'Uncategorized' in str(c):
-            feature_item = get_commit_data_cache().get(c.commit_hash)
+    for i, commit in enumerate(current_commits.commits):
+        current_category = commit.category
+        if current_category == 'Uncategorized' or current_category not in common.categories:
+            feature_item = get_commit_data_cache().get(commit.commit_hash)
             features = features_to_dict(feature_item)
             category, topic = CommitList.categorize(features)
-            current_commits[i] = dataclasses.replace(c, category=category, topic=topic)
+            current_commits.commits[i] = dataclasses.replace(commit, category=category, topic=topic)
     current_commits.write_result()
 
 def get_hash_or_pr_url(commit: Commit):
@@ -357,6 +362,7 @@ def main():
 
     if args.create_new:
         create_new(args.path, args.create_new[0], args.create_new[1])
+        print("Finished creating new commit list. Results have been saved to results/commitlist.csv")
         return
     if args.update_to:
         update_existing(args.path, args.update_to)

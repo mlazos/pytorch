@@ -7,6 +7,33 @@ import requests
 import os
 import json
 
+# These should be sets but ordering is nice
+# Distributed has a number of release note labels we want to map to just one.
+distributed_categories = [
+    'distributed (c10d)',
+    'distributed (composable)',
+    'distributed (ddp)',
+    'distributed (fsdp)',
+    'distributed (rpc)',
+    'distributed (sharded)',
+]
+
+frontend_categories = [
+    'meta',
+    'nn',
+    'linalg',
+    'cpp',
+    'python',
+    'complex',
+    'vmap',
+    'autograd',
+    'build',
+    'memory_format',
+    'foreach',
+    'dataloader',
+    'sparse',
+]
+
 categories = [
     'Uncategorized',
     'distributed',
@@ -33,20 +60,16 @@ categories = [
     'vulkan',
     'skip',
     'composability',
-    'meta_frontend',
-    'nn_frontend',
-    'linalg_frontend',
-    'cpp_frontend',
-    'python_frontend',
-    'complex_frontend',
-    'vmap_frontend',
-    'autograd_frontend',
-    'build_frontend',
-    'memory_format_frontend',
-    'foreach_frontend',
-    'dataloader_frontend',
-    'sparse_frontend'
-]
+    # 2.0 release
+    # 'meta_api',
+    # 'mps',
+    # 'intel',
+    # 'functorch',
+    # 'nested tensor',
+    # 'dynamo',
+    # 'AO Pruning',
+    # 'inductor',
+ ] + [f'{category}_frontend' for category in frontend_categories]
 
 topics = [
     'bc_breaking',
@@ -141,7 +164,16 @@ def get_ghstack_token():
         raise RuntimeError("Can't find a github oauth token")
     return matches[0]
 
-token = get_ghstack_token()
+def get_token():
+    env_token = os.environ.get("GITHUB_TOKEN")
+    if env_token is not None:
+        print("using GITHUB_TOKEN from environment variable")
+        return env_token
+    else:
+        return get_ghstack_token()
+
+token = get_token()
+
 headers = {"Authorization": f"token {token}"}
 
 def run_query(query):
@@ -179,7 +211,8 @@ def github_data(pr_number):
     }
     """ % pr_number
     query = run_query(query)
-
+    if query.get('errors'):
+        raise Exception(query['errors'])
     edges = query['data']['repository']['pullRequest']['labels']['edges']
     labels = [edge['node']['name'] for edge in edges]
     author = query['data']['repository']['pullRequest']['author']['login']
