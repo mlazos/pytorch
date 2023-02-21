@@ -1,13 +1,15 @@
 # Summary
 These are a collection of scripts for access lists of commits between releases. There are other scripts for automatically generating labels for commits.
 
+The release_notes Runbook and other supporting docs can be found here: [Release Notes Supporting Docs](https://drive.google.com/drive/folders/1J0Uwz8oE7TrdcP95zc-id1gdSBPnMKOR?usp=sharing)
 
-#### Authentication:
+An example of generated docs for submodule owners: [2.0 release notes submodule docs](https://drive.google.com/drive/folders/1zQtmF_ak7BkpGEM58YgJfnpNXTnFl25q?usp=share_link)
+
+### Authentication:
 First run the `test_release_notes.py` script to make sure you have the correct authentication set up. This script will try to access the GitHub API and will fail if you are not authenticated.
 
 - If you have enabled ghstack then authentication should be set up correctly.
 - Otherwise go to `https://github.com/settings/tokens` and create a token. You can either follow the steps to setup ghstack or set the env variable `GITHUB_TOKEN`.
-
 
 
 ## Steps:
@@ -34,18 +36,27 @@ If you already have a commit list and want to update it, use the following comma
 `python commitlist.py --update_to <commit_hash>`
 
 ### Part 2: categorizing commits
+
+#### Exploration and cleanup
+
 In this folder is an ipython notebook that I used for exploration and finding relevant commits. For example the commitlist attempts to categorize commits based off the `release notes:` label. Users of PyTorch often add new release notes labels. This Notebook has a cell that can help you identify new labels.
 
 There is a list of all known categories defined in `common.py`. It has designations for types of categories as well such as `_frontend`.
 
 The `categorize` function in commitlist.py does an adequate job of adding the appropriate categories. Since new categories though may be created for your release you may find it helpful to add new heursitics around files changed to help with categorization.
 
-If you update the automatic categorization you can run the following to update the commit list.
+If you update the automatic ization you can run the following to update the commit list.
 `python commitlist.py --rerun_with_new_filters` Note that this will only update the commits in the commit list that have a category of "Uncategorized".
 
 One you have dug through the commits and done as much automated categorization you can run the following for an interface to categorize any remaining commits.
 
-`python categorize.py`
+#### Training a commit classifier
+I added scripts to train a commit classifier from the set of labeled commits in commitlist.csv. This will utilize the title, author, and files changed features of the commits. The file requires torchtext, and tqdm. I had to install torchtext from source but if you are also a PyTorch developer this would likely already be installed.
+
+- There should already exist a `results/` directory from gathering the commitlist.csv. The next step is to create `mkdir results/classifier`
+- Run `python classifier.py --train` This will train the model and save for inference.
+- Run `python categorize.py --use_classifier` This will pre-populate the output with the most likely category.
+ - Or run `python categorize.py` to label without the classifier.
 
 The interface modifies results/commitlist.csv. If you want to take a coffee break, you can CTRL-C out of it (results/commitlist.csv gets written to on each categorization) and then commit and push results/commitlist.csv to a branch for safekeeping.
 
