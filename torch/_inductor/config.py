@@ -82,6 +82,15 @@ unroll_reductions_threshold = 8
 
 comment_origin = False
 
+# Output the path to the compiled module.
+# A compiled module contains
+# 1. all compiled triton kernels
+# 2. a wrapper to call those triton kernels
+# 3. some helper code to generate random inputs and call the wrapper
+output_compiled_module_path = os.environ.get("TORCHINDUCTOR_OUTPUT_COMPILED_MODULE_PATH", "0") == "1"
+
+benchmark_kernel = os.environ.get("TORCHINDUCTOR_BENCHMARK_KERNEL", "0") == "1"
+
 
 def is_fbcode():
     return not hasattr(torch.version, "git_version")

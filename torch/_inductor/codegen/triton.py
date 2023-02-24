@@ -23,6 +23,7 @@ from ..utils import (
     sympy_subs,
     sympy_symbol,
 )
+from ..codecache import get_code_path
 from ..virtualized import ops, V
 
 from .common import (
@@ -1171,6 +1172,49 @@ class TritonKernel(Kernel):
         self.stores.clear()
         self.suffix.clear()
 
+    def codegen_kernel_benchmark(self):
+        result = IndentedBuffer()
+
+        result.writelines(["", "", 'if __name__ == "__main__":'])
+        grid = []
+        with result.indent():
+            result.writeline("from torch._C import _cuda_getCurrentRawStream as get_cuda_stream")
+            result.writeline("from torch._dynamo.testing import rand_strided")
+            result.writeline("from torch._inductor.utils import print_performance")
+            result.writeline("import torch")
+            result.writeline("from torch._inductor.triton_ops.autotune import grid")
+            result.writeline("")
+
+            argdefs, call_args, signature = self.args.python_argdefs()
+
+            for arg_name in call_args:
+                buf = V.graph.get_buffer(arg_name)
+                if buf:
+                    result.writeline(
+                        f"{arg_name} = rand_strided({tuple(buf.get_size())}, {tuple(buf.get_stride())}, device='{buf.get_device()}', dtype={buf.get_dtype()})"
+                    )
+
+            for tree in self.range_trees:
+                expr = pexpr(tree.numel)
+                if tree.prefix != "r" or self.inside_reduction:
+                    call_args.append(expr)
+                if tree.prefix != "r":
+                    grid.append(expr)
+
+            call_args = ", ".join(call_args)
+            index = V.graph.scheduler.current_device.index
+            stream_name = f"stream{index}"
+            result.writeline(f"{stream_name} = get_cuda_stream({index})")
+
+            # print_performance assert non-None return value, but a triton kernel
+            # indeed returns None. Override the return value to True to handle this.
+            result.writeline(
+                f"print_performance(lambda: triton_.run({call_args}, grid=grid({', '.join(grid)}), stream={stream_name}) or True)"
+            )
+
+
+        return result
+
     def codegen_kernel(self, name=None):
         from triton import next_power_of_2
 
@@ -1277,14 +1321,13 @@ class TritonKernel(Kernel):
                 code.writeline(f"{old} = {new}")
             code.splice(self.body)
 
+        if config.benchmark_kernel:
+            code.splice(self.codegen_kernel_benchmark())
+
         if name is not None:
             return code.getvalue()
 
-        wrapper = IndentedBuffer()
-        wrapper.writeline("async_compile.triton('''")
-        wrapper.splice(code.getvalue(), strip=True)
-        wrapper.writeline("''')")
-        return wrapper.getvalue()
+        return code.getvalue();
 
     def codegen_template_wrapper(self, src_code):
         wrapper = IndentedBuffer()
@@ -1579,7 +1622,14 @@ class TritonScheduling:
             # TODO(voz): Ostensibly, we should not need this. But there are cases where C++ codegen does
             # not use BracesBuffer, so we have no good indicator of a C++ buffer atm.
             src_code = src_code.replace("#pragma CMT", "#")
-            wrapper.define_kernel(kernel_name, src_code)
+
+            _, _, kernel_path = get_code_path(src_code, "py", extra="")
+            compile_wrapper = IndentedBuffer()
+            compile_wrapper.writeline("async_compile.triton('''")
+            compile_wrapper.splice(src_code, strip=True)
+            compile_wrapper.writeline("''')")
+
+            wrapper.define_kernel(kernel_name, compile_wrapper.getvalue(), kernel_path)
         return kernel_name
 
     def codegen_template(self, template_node, epilogue_nodes):

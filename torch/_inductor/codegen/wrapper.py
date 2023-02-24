@@ -598,8 +598,8 @@ class WrapperCodeGen(CodeGen):
                 f"print_performance(lambda: call([{', '.join(V.graph.graph_inputs.keys())}]))"
             )
 
-    def define_kernel(self, name: str, kernel: str):
-        self.header.splice(f"\n\n{name} = {kernel}")
+    def define_kernel(self, name: str, kernel: str, kernel_path: str):
+        self.header.splice(f"\n\n# kernel path: {kernel_path}\n{name} = {kernel}")
 
     def load_kernel(self, name: str = None, kernel: str = None, arg_types: List = None):
         return
