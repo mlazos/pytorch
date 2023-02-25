@@ -234,6 +234,9 @@ class TORCH_API TensorBase {
   c10::SymIntArrayRef sym_sizes() const {
     return impl_->sym_sizes();
   }
+  c10::IntArrayRef _composite_sizes() const {
+    return impl_->_composite_sizes();
+  }
   c10::SymIntArrayRef sym_strides() const {
     return impl_->sym_strides();
   }
@@ -371,6 +374,10 @@ class TORCH_API TensorBase {
   // bit to determine if a negation needs to be materialized.
   inline void _set_neg(bool negative) const {
     impl_->_set_neg(negative);
+  }
+
+  inline void _add_composite_view(IntArrayRef sizes) const {
+    impl_->_add_composite_view(DimVector(sizes.begin(), sizes.end()));
   }
 
   /// Returns a `Tensor`'s layout.
