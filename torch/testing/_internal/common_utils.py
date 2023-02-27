@@ -4005,7 +4005,7 @@ def xfail_inherited_tests(tests):
     return deco
 
 
-def sandcastle_skip_if(condition, reason):
+def skip_but_pass_in_sandcastle_if(condition, reason):
     """
     Similar to unittest.skipIf, however in the sandcastle environment it just
     "passes" the test instead to avoid creating tasks complaining about tests

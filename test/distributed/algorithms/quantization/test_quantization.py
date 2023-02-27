@@ -15,7 +15,7 @@ from torch.testing._internal.common_distributed import (
     skip_if_lt_x_gpu,
     requires_nccl,
 )
-from torch.testing._internal.common_utils import sandcastle_skip_if, run_tests, TEST_WITH_DEV_DBG_ASAN, NO_MULTIPROCESSING_SPAWN
+from torch.testing._internal.common_utils import skip_but_pass_in_sandcastle_if, run_tests, TEST_WITH_DEV_DBG_ASAN, NO_MULTIPROCESSING_SPAWN
 
 torch.backends.cuda.matmul.allow_tf32 = False
 
@@ -63,7 +63,7 @@ if BACKEND == "gloo" or BACKEND == "nccl":
             return int(os.environ["WORLD_SIZE"])
 
         @requires_gloo()
-        @sandcastle_skip_if(BACKEND != "gloo", "Only gloo backend supports all_gather_fp16")
+        @skip_but_pass_in_sandcastle_if(BACKEND != "gloo", "Only gloo backend supports all_gather_fp16")
         def test_all_gather_fp16(self):
             store = dist.FileStore(self.file_name, self.world_size)
             dist.init_process_group(store=store, rank=self.rank, world_size=self.world_size, backend='gloo')
@@ -73,7 +73,7 @@ if BACKEND == "gloo" or BACKEND == "nccl":
             self._test_all_gather(group, group_id, self.rank, dtype=torch.float32, qtype=DQuantType.FP16)
 
         @requires_gloo()
-        @sandcastle_skip_if(BACKEND != "gloo", "Only gloo backend supports all_gather_fp16")
+        @skip_but_pass_in_sandcastle_if(BACKEND != "gloo", "Only gloo backend supports all_gather_fp16")
         def test_all_gather_bfp16(self):
             store = dist.FileStore(self.file_name, self.world_size)
             dist.init_process_group(store=store, rank=self.rank, world_size=self.world_size, backend='gloo')
@@ -83,7 +83,7 @@ if BACKEND == "gloo" or BACKEND == "nccl":
             self._test_all_gather(group, group_id, self.rank, dtype=torch.float32, qtype=DQuantType.BFP16)
 
         @requires_nccl()
-        @sandcastle_skip_if(BACKEND != "nccl", "Only nccl backend supports all_to_all_fp16")
+        @skip_but_pass_in_sandcastle_if(BACKEND != "nccl", "Only nccl backend supports all_to_all_fp16")
         @skip_if_lt_x_gpu(int(os.environ["WORLD_SIZE"]))
         @skip_if_rocm
         def test_all_to_all_fp16(self):
@@ -103,7 +103,7 @@ if BACKEND == "gloo" or BACKEND == "nccl":
                 qtype=DQuantType.FP16)
 
         @requires_nccl()
-        @sandcastle_skip_if(BACKEND != "nccl", "Only nccl backend supports all_to_all_fp16")
+        @skip_but_pass_in_sandcastle_if(BACKEND != "nccl", "Only nccl backend supports all_to_all_fp16")
         @skip_if_lt_x_gpu(int(os.environ["WORLD_SIZE"]))
         @skip_if_rocm
         def test_all_to_all_bfp16(self):
@@ -123,7 +123,7 @@ if BACKEND == "gloo" or BACKEND == "nccl":
                 qtype=DQuantType.BFP16)
 
         @requires_nccl()
-        @sandcastle_skip_if(BACKEND != "nccl", "Only nccl backend supports all_to_all_single_fp16")
+        @skip_but_pass_in_sandcastle_if(BACKEND != "nccl", "Only nccl backend supports all_to_all_single_fp16")
         @skip_if_lt_x_gpu(int(os.environ["WORLD_SIZE"]))
         def test_all_to_all_single_fp16(self):
             store = dist.FileStore(self.file_name, self.world_size)
@@ -143,7 +143,7 @@ if BACKEND == "gloo" or BACKEND == "nccl":
             )
 
         @requires_nccl()
-        @sandcastle_skip_if(BACKEND != "nccl", "Only nccl backend supports all_to_all_single_bfp16")
+        @skip_but_pass_in_sandcastle_if(BACKEND != "nccl", "Only nccl backend supports all_to_all_single_bfp16")
         @skip_if_lt_x_gpu(int(os.environ["WORLD_SIZE"]))
         def test_all_to_all_single_bfp16(self):
             store = dist.FileStore(self.file_name, self.world_size)
