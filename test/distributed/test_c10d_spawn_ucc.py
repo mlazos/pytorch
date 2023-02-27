@@ -13,7 +13,7 @@ from torch.testing._internal.common_distributed import (
 from torch.testing._internal.common_utils import (
     TestCase,
     run_tests,
-    sandcastle_skip,
+    skip_but_pass_in_sandcastle,
     skip_but_pass_in_sandcastle_if,
     TEST_WITH_DEV_DBG_ASAN,
 )
@@ -91,7 +91,7 @@ if not TEST_WITH_DEV_DBG_ASAN:
         @requires_ucc()
         @skip_if_lt_x_gpu(2)
         @skip_but_pass_in_sandcastle_if(not _torch_dist_nn_available, "torch.distributed.nn is not available")
-        @sandcastle_skip("runs into illegal memory access on first assertEqual check when run locally")
+        @skip_but_pass_in_sandcastle("runs into illegal memory access on first assertEqual check when run locally")
         def test_all_gather(self):
             self._test_all_gather("ucc")
 

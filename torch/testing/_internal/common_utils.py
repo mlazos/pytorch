@@ -3901,7 +3901,7 @@ def find_library_location(lib_name: str) -> Path:
     torch_root = Path(__file__).resolve().parent.parent.parent
     return torch_root / 'build' / 'lib' / lib_name
 
-def sandcastle_skip(reason):
+def skip_but_pass_in_sandcastle(reason):
     """
     Similar to unittest.skip, however in the sandcastle environment it just
     "passes" the test instead to avoid creating tasks complaining about tests

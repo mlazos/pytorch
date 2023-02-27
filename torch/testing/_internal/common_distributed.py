@@ -30,7 +30,7 @@ from torch.testing._internal.common_utils import (
     find_free_port,
     IS_SANDCASTLE,
     retry_on_connect_failures,
-    sandcastle_skip,
+    skip_but_pass_in_sandcastle,
     skip_but_pass_in_sandcastle_if,
     TEST_WITH_ROCM,
     TEST_WITH_TSAN,
@@ -294,7 +294,7 @@ def requires_gloo():
 
 def requires_nccl_version(version, msg):
     if not c10d.is_nccl_available():
-        return sandcastle_skip(
+        return skip_but_pass_in_sandcastle(
             "c10d was not compiled with the NCCL backend",
         )
     else:

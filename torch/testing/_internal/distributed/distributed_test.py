@@ -75,7 +75,7 @@ from torch.testing._internal.common_utils import (
     NO_MULTIPROCESSING_SPAWN,
     IS_SANDCASTLE,
     parametrize,
-    sandcastle_skip,
+    skip_but_pass_in_sandcastle,
     skip_but_pass_in_sandcastle_if,
 )
 
@@ -387,7 +387,7 @@ CUSTOM_PG_TIMEOUT = {
 
 def require_backend(backends):
     if BACKEND not in backends:
-        return sandcastle_skip("Test requires backend to be one of %s" % backends)
+        return skip_but_pass_in_sandcastle("Test requires backend to be one of %s" % backends)
     return lambda func: func
 
 
@@ -406,13 +406,13 @@ def require_backends_available(backends):
         return False
 
     if not all(check(dist.Backend(backend)) for backend in backends):
-        return sandcastle_skip("Test requires backends to be available %s" % backends)
+        return skip_but_pass_in_sandcastle("Test requires backends to be available %s" % backends)
     return lambda func: func
 
 
 def require_world_size(world_size):
     if int(os.environ["WORLD_SIZE"]) < world_size:
-        return sandcastle_skip("Test requires world size of %d" % world_size)
+        return skip_but_pass_in_sandcastle("Test requires world size of %d" % world_size)
     return lambda func: func
 
 

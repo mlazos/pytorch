@@ -48,7 +48,7 @@ from torch.testing._internal.common_utils import (
     retry_on_connect_failures,
     TEST_WITH_DEV_DBG_ASAN,
     TEST_WITH_ROCM,
-    sandcastle_skip,
+    skip_but_pass_in_sandcastle,
     skip_but_pass_in_sandcastle_if,
 )
 
@@ -2390,7 +2390,7 @@ class NcclErrorHandlingTest(MultiProcessTestCase):
     @requires_nccl_version((2, 4, 0), "Need NCCL 2.4+ for error checking")
     @skip_if_lt_x_gpu(3)
     @skip_if_rocm
-    @sandcastle_skip("Test does not pass when run locally")
+    @skip_but_pass_in_sandcastle("Test does not pass when run locally")
     def test_nccl_errors_nonblocking(self):
         # Note: we unset and restore NCCL_ASYNC_ERROR_HANDLING for this test
         # since test_c10d_common runs with async error handling by default, but this
@@ -2470,7 +2470,7 @@ class NcclErrorHandlingTest(MultiProcessTestCase):
     @requires_nccl_version((2, 4, 0), "Need NCCL 2.4+ for error checking")
     @skip_if_lt_x_gpu(3)
     @skip_if_rocm
-    @sandcastle_skip(
+    @skip_but_pass_in_sandcastle(
         "Frequently times out see https://github.com/pytorch/pytorch/issues/58920"
     )
     def test_nccl_errors_blocking_abort(self):
@@ -2675,7 +2675,7 @@ class CommTest(test_c10d_common.AbstractCommTest, MultiProcessTestCase):
     @requires_nccl()
     def test_sequence_num_incremented_nccl_subgroup(self):
         if self.world_size < 4:
-            return sandcastle_skip("Test requires world_size of at least 4")
+            return skip_but_pass_in_sandcastle("Test requires world_size of at least 4")
         self._test_sequence_num_incremented_subgroup("nccl")
 
     @requires_nccl()
