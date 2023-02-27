@@ -1298,6 +1298,8 @@ def main():
     test_directory = str(REPO_ROOT / "test")
     selected_tests = get_selected_tests(options)
 
+    selected_tests = [x for x in selected_tests if x in ADDITIONAL_PYTEST_LIST]
+
     if options.verbose:
         print_to_stderr("Selected tests:\n {}".format("\n ".join(selected_tests)))
 
