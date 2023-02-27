@@ -3291,6 +3291,11 @@ class TestCase(expecttest.TestCase):
         return stderr.decode('ascii')
 
 
+class NoTest():
+    # setting this results in pytest ignoring this class
+    __test__ = False
+
+
 def download_file(url, binary=True):
     from urllib.parse import urlsplit
     from urllib import request, error

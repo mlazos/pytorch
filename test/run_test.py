@@ -162,6 +162,18 @@ TESTS = TESTS + ['doctests']
 
 FSDP_TEST = [test for test in TESTS if test.startswith("distributed/fsdp")]
 
+ADDITIONAL_PYTEST_LIST = [
+    "distributed/test_nccl",
+    "test_jit",
+    "test_cuda",
+    "test_cuda_nvml_based_avail",
+    "test_cuda_primary_ctx",
+    "test_cuda_sanitizer",
+    "test_cuda_trace",
+    "test_jiterator",
+    "test_mps",
+]
+
 # Tests need to be run with pytest.
 USE_PYTEST_LIST = [
     "distributed/pipeline/sync/skip/test_api",
@@ -193,8 +205,8 @@ USE_PYTEST_LIST = [
     "distributed/elastic/events/lib_test",
     "distributed/elastic/agent/server/test/api_test",
     "test_deploy",
-    "distributed/test_c10d_error_logger"
-]
+    "distributed/test_c10d_error_logger",
+] + ADDITIONAL_PYTEST_LIST
 
 WINDOWS_BLOCKLIST = [
     "distributed/nn/jit/test_instantiator",
